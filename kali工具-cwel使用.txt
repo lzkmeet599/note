@@ -1,0 +1,63 @@
+cwel是一种用于生成密码的脚本工具。
+可以通过指定url和指定深度来爬取网站的相关信息生成字典进行密码爆破
+
+```
+OPTIONS（参数设置）:
+        -h, --help:帮助
+        -k, --keep: 保存下载文件
+        -d <x>,--depth <x>: 爬取深度，默认2
+        -m, --min_word_length: 最小字典长度，默认3
+        -o, --offsite:允许爬虫爬取其他站点.
+        --exclude: A file containing a list of paths to exclude
+        --allowed: A regex pattern that path must match to be followed
+        -w, --write: 将输出结果写入文件
+        -u, --ua <agent>: 设置user-agent
+        -n, --no-words: 不输出字典列表
+        --lowercase: Lowercase all parsed words
+        --with-numbers: 允许单词中有数字
+        --convert-umlauts: Convert common ISO-8859-1 (Latin-1) umlauts (ä-ae, ö-oe, ü-ue, ß-ss)
+        -a, --meta: 包括元数据
+        --meta_file file: 输出元数据文件
+        -e, --email: 包括email地址
+        --email_file <file>: 输入email地址文件
+        --meta-temp-dir <dir>: The temporary directory used by exiftool when parsing files, default /tmp.
+        -c, --count: 统计重复单词的次数
+        -v, --verbose: 输出网站的信息，比生成字典更详细
+        --debug: 显示爬取过程中的详细信息
+        Authentication（网站需要登录时设置的选项）
+        --auth_type: Digest or basic.（有两个选项可以选择）
+        --auth_user: 用户名
+        --auth_pass: 密码
+        Proxy Support（代理设置）
+        --proxy_host: Proxy host.
+        --proxy_port: Proxy port, default 8080.
+        --proxy_username: Username for proxy, if required.
+        --proxy_password: Password for proxy, if required.
+
+        Headers
+        --header, -H: In format name:value - can pass multiple.
+
+    <url>: The site to spider.
+
+```
+
+使用介绍
+
+默认设置，会自动输出爬取到的单词列表
+cewl http://127.0.0.1/
+
+默认设置，爬取到的单词输入到test.txt中
+cewl http://127.0.0.1/ -w test.txt
+
+生成指定最小长度为9的字典
+cewl http://127.0.0.1/ -m 9
+
+获取网站中的email地址
+cewl http;//127.0.0.1/ -n -e 
+
+计算网站中重复单词的次数
+cewl http://127.0.0.1/ -c 
+
+增加爬行的深度，默认深度为2
+cewl http://127.0.0.1/ -d 3
+
